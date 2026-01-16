@@ -78,3 +78,41 @@ We don’t need perfect physics — we want something that:
 ### 🔗 Resources
 GitHub repo with foreground and background images:  
 https://github.com/amcnyusa/Shadow-Files
+
+---
+
+## Project setup (local)
+
+### Python backend (CLI)
+
+```bash
+pip install -r backend/requirements.txt
+python backend/main.py \
+  --fg "Shadow-Files-main/25_1107O_11974 PB + 1 - Photo Calendar B_Lamborghini HAS.JPG" \
+  --bg "Shadow-Files-main/B_Lamborghini Red.JPG" \
+  --mask "path/to/mask.png" \
+  --out-dir outputs \
+  --angle 45 \
+  --elevation 45 \
+  --soft-fade 1.0 \
+  --blur-ratio 6.0
+```
+
+Notes:
+- `--mask` is optional; if omitted, the foreground alpha channel is used.
+- Outputs: `outputs/composite.png`, `outputs/shadow_only.png`, `outputs/mask_debug.png`.
+
+### UI (HTML + TypeScript)
+
+```bash
+pip install -r backend/requirements.txt
+python backend/server.py
+```
+
+Open `http://localhost:8000`.
+
+UI controls:
+- Angle and elevation sliders.
+- Gradient length (soft-fade) slider.
+- Blur ratio slider.
+- Save buttons add angle/elevation to filenames.

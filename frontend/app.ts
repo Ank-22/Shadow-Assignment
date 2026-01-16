@@ -3,8 +3,12 @@ const bgInput = document.getElementById("bg") as HTMLInputElement;
 const maskInput = document.getElementById("mask") as HTMLInputElement;
 const angleInput = document.getElementById("angle") as HTMLInputElement;
 const elevationInput = document.getElementById("elevation") as HTMLInputElement;
+const gradientInput = document.getElementById("gradient") as HTMLInputElement;
+const blurRatioInput = document.getElementById("blur-ratio") as HTMLInputElement;
 const angleValue = document.getElementById("angle-value") as HTMLSpanElement;
 const elevationValue = document.getElementById("elevation-value") as HTMLSpanElement;
+const gradientValue = document.getElementById("gradient-value") as HTMLSpanElement;
+const blurRatioValue = document.getElementById("blur-ratio-value") as HTMLSpanElement;
 const status = document.getElementById("status") as HTMLParagraphElement;
 const composeButton = document.getElementById("compose") as HTMLButtonElement;
 const liveToggle = document.getElementById("live") as HTMLInputElement;
@@ -25,6 +29,8 @@ let renderInFlight = false;
 const updateSliderLabels = () => {
   angleValue.textContent = `${angleInput.value}°`;
   elevationValue.textContent = `${elevationInput.value}°`;
+  gradientValue.textContent = `${Number(gradientInput.value).toFixed(2)}`;
+  blurRatioValue.textContent = `${Number(blurRatioInput.value).toFixed(1)}`;
 };
 
 const updatePreview = (input: HTMLInputElement, img: HTMLImageElement) => {
@@ -68,6 +74,8 @@ const compose = async () => {
   }
   form.append("angle", angleInput.value);
   form.append("elevation", elevationInput.value);
+  form.append("soft_fade", gradientInput.value);
+  form.append("blur_ratio", blurRatioInput.value);
 
   try {
     const response = await fetch("/api/compose", {
@@ -134,12 +142,16 @@ bgInput.addEventListener("change", () => updatePreview(bgInput, bgPreview));
 maskInput.addEventListener("change", () => updatePreview(maskInput, maskPreview));
 angleInput.addEventListener("input", updateSliderLabels);
 elevationInput.addEventListener("input", updateSliderLabels);
+gradientInput.addEventListener("input", updateSliderLabels);
+blurRatioInput.addEventListener("input", updateSliderLabels);
 composeButton.addEventListener("click", compose);
 fgInput.addEventListener("change", scheduleRender);
 bgInput.addEventListener("change", scheduleRender);
 maskInput.addEventListener("change", scheduleRender);
 angleInput.addEventListener("input", scheduleRender);
 elevationInput.addEventListener("input", scheduleRender);
+gradientInput.addEventListener("input", scheduleRender);
+blurRatioInput.addEventListener("input", scheduleRender);
 
 downloadComposite.addEventListener("click", () => {
   if (!latestComposite) {

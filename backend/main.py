@@ -59,6 +59,18 @@ def parse_args() -> argparse.Namespace:
         default=1.0,
         help="Fraction of shadow length used for soft falloff.",
     )
+    parser.add_argument(
+        "--contact-blur",
+        type=float,
+        default=2.0,
+        help="Base blur radius for contact shadow.",
+    )
+    parser.add_argument(
+        "--blur-ratio",
+        type=float,
+        default=6.0,
+        help="Multiplier for soft shadow blur relative to contact blur.",
+    )
     return parser.parse_args()
 
 
@@ -97,6 +109,8 @@ def main() -> None:
         max_shear=args.max_shear,
         contact_fade=args.contact_fade,
         soft_fade=args.soft_fade,
+        contact_blur=args.contact_blur,
+        blur_ratio=args.blur_ratio,
     )
 
     shadow_only.save(out_dir / "shadow_only.png")

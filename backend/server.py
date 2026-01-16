@@ -74,6 +74,8 @@ def compose():
         max_shear=_parse_float("max_shear", 5.0),
         contact_fade=_parse_float("contact_fade", 0.15),
         soft_fade=_parse_float("soft_fade", 1.0),
+        contact_blur=_parse_float("contact_blur", 2.0),
+        blur_ratio=_parse_float("blur_ratio", 6.0),
     )
 
     composite_bytes = io.BytesIO()

@@ -111,6 +111,8 @@ def build_shadow_alpha(
     max_shear: float,
     contact_fade: float,
     soft_fade: float,
+    contact_blur: float,
+    blur_ratio: float,
 ) -> Image.Image:
     shadow_mask = project_shadow(mask, angle, elevation, shadow_scale, max_shear)
 
@@ -133,10 +135,14 @@ def build_shadow_alpha(
     contact_fade_mask = build_fade_mask(mask.size, y0, fade_dx, fade_dy, contact_distance)
     soft_fade_mask = build_fade_mask(mask.size, y0, fade_dx, fade_dy, soft_distance)
 
-    contact_shadow = shadow_mask.filter(ImageFilter.GaussianBlur(2))
+    contact_blur = max(contact_blur, 0.1)
+    blur_ratio = max(blur_ratio, 1.0)
+    soft_blur = contact_blur * blur_ratio
+
+    contact_shadow = shadow_mask.filter(ImageFilter.GaussianBlur(contact_blur))
     contact_shadow = ImageChops.multiply(contact_shadow, contact_fade_mask)
 
-    soft_shadow = shadow_mask.filter(ImageFilter.GaussianBlur(12))
+    soft_shadow = shadow_mask.filter(ImageFilter.GaussianBlur(soft_blur))
     soft_shadow = ImageChops.multiply(soft_shadow, soft_fade_mask)
 
     return ImageChops.lighter(contact_shadow, soft_shadow)
@@ -152,6 +158,8 @@ def composite_shadow(
     max_shear: float,
     contact_fade: float,
     soft_fade: float,
+    contact_blur: float,
+    blur_ratio: float,
 ) -> tuple[Image.Image, Image.Image]:
     shadow_alpha = build_shadow_alpha(
         mask,
@@ -161,6 +169,8 @@ def composite_shadow(
         max_shear,
         contact_fade,
         soft_fade,
+        contact_blur,
+        blur_ratio,
     )
 
     shadow_only = Image.new("RGBA", bg.size, (0, 0, 0, 0))
