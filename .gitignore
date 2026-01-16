@@ -1,0 +1,12 @@
+.DS_Store
+.env
+.env.*
+.vscode/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+venv/
+outputs/
+node_modules/

@@ -1,8 +1,14 @@
 import argparse
-import math
+import sys
 from pathlib import Path
 
 from PIL import Image
+
+ROOT_DIR = Path(__file__).resolve().parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
+from shadow import composite_shadow, derive_mask_from_fg, load_mask
 
 
 def parse_args() -> argparse.Namespace:
@@ -11,7 +17,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--fg", required=True, help="Path to foreground image.")
     parser.add_argument("--bg", required=True, help="Path to background image.")
-    parser.add_argument("--mask", required=True, help="Path to foreground mask.")
+    parser.add_argument("--mask", help="Path to foreground mask.")
     parser.add_argument(
         "--out-dir",
         default="outputs",
@@ -41,6 +47,18 @@ def parse_args() -> argparse.Namespace:
         default=5.0,
         help="Clamp for extreme low-elevation shadows.",
     )
+    parser.add_argument(
+        "--contact-fade",
+        type=float,
+        default=0.15,
+        help="Fraction of shadow length used for sharp contact fade.",
+    )
+    parser.add_argument(
+        "--soft-fade",
+        type=float,
+        default=1.0,
+        help="Fraction of shadow length used for soft falloff.",
+    )
     return parser.parse_args()
 
 
@@ -48,82 +66,38 @@ def ensure_out_dir(path: Path) -> None:
     path.mkdir(parents=True, exist_ok=True)
 
 
-def load_mask(path: Path) -> Image.Image:
-    mask_img = Image.open(path)
-    if mask_img.mode in ("L", "1"):
-        return mask_img.convert("L")
-    if mask_img.mode in ("LA", "RGBA"):
-        return mask_img.split()[-1]
-    return mask_img.convert("L")
-
-
-def project_shadow(mask: Image.Image, angle: float, elevation: float, scale: float, max_shear: float) -> Image.Image:
-    bbox = mask.getbbox()
-    if bbox is None:
-        raise ValueError("Mask is empty; no non-zero pixels found.")
-
-    y0 = bbox[3]
-    angle_rad = math.radians(angle)
-    elev_rad = math.radians(elevation)
-
-    dx = math.cos(angle_rad)
-    dy = math.sin(angle_rad)
-
-    tan_elev = max(math.tan(elev_rad), 1e-3)
-    k = min(scale / tan_elev, max_shear)
-
-    denom = 1 + k * dy
-    if dy != 0 and abs(denom) < 0.2:
-        k = (0.2 - 1) / dy
-        denom = 1 + k * dy
-
-    # Affine matrix for output->input mapping.
-    a = 1
-    b = -k * dx / denom
-    c = k * dx * y0 / denom
-    d = 0
-    e = 1 / denom
-    f = k * dy * y0 / denom
-
-    return mask.transform(
-        mask.size,
-        Image.AFFINE,
-        (a, b, c, d, e, f),
-        resample=Image.BICUBIC,
-        fillcolor=0,
-    )
-
-
 def main() -> None:
     args = parse_args()
     fg_path = Path(args.fg)
     bg_path = Path(args.bg)
-    mask_path = Path(args.mask)
+    mask_path = Path(args.mask) if args.mask else None
     out_dir = Path(args.out_dir)
 
     ensure_out_dir(out_dir)
 
     fg = Image.open(fg_path).convert("RGBA")
     bg = Image.open(bg_path).convert("RGBA")
-    mask = load_mask(mask_path)
+    if mask_path:
+        mask = load_mask(mask_path)
+    else:
+        mask = derive_mask_from_fg(fg)
 
     if fg.size != mask.size:
         raise ValueError("Foreground and mask sizes do not match.")
     if bg.size != fg.size:
         raise ValueError("Background and foreground sizes do not match.")
 
-    shadow_mask = project_shadow(
-        mask, args.angle, args.elevation, args.shadow_scale, args.max_shear
+    shadow_only, composite = composite_shadow(
+        fg=fg,
+        bg=bg,
+        mask=mask,
+        angle=args.angle,
+        elevation=args.elevation,
+        shadow_scale=args.shadow_scale,
+        max_shear=args.max_shear,
+        contact_fade=args.contact_fade,
+        soft_fade=args.soft_fade,
     )
-    shadow_only = Image.new("RGBA", bg.size, (0, 0, 0, 0))
-    shadow_only.putalpha(shadow_mask)
-
-    # Apply mask to foreground for clean compositing.
-    fg_with_alpha = fg.copy()
-    fg_with_alpha.putalpha(mask)
-
-    composite = Image.alpha_composite(bg, shadow_only)
-    composite = Image.alpha_composite(composite, fg_with_alpha)
 
     shadow_only.save(out_dir / "shadow_only.png")
     composite.save(out_dir / "composite.png")

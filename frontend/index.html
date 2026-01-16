@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Shadow Composer</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="page">
+      <header class="hero">
+        <p class="kicker">Realistic Shadow Generator</p>
+        <h1>Cast believable shadows with direction and falloff.</h1>
+        <p class="subhead">
+          Upload a foreground, background, and your manual mask. Tune angle and elevation,
+          then generate a composite from the Python backend.
+        </p>
+      </header>
+
+      <main class="grid">
+        <section class="panel">
+          <h2>Inputs</h2>
+          <div class="field">
+            <label for="fg">Foreground image</label>
+            <input type="file" id="fg" accept="image/*" />
+          </div>
+          <div class="field">
+            <label for="bg">Background image</label>
+            <input type="file" id="bg" accept="image/*" />
+          </div>
+          <div class="field">
+            <label for="mask">Mask (optional, overrides alpha)</label>
+            <input type="file" id="mask" accept="image/*" />
+          </div>
+
+          <div class="slider">
+            <div class="label-row">
+              <label for="angle">Angle</label>
+              <span id="angle-value">45°</span>
+            </div>
+            <input type="range" id="angle" min="0" max="360" value="45" />
+          </div>
+
+          <div class="slider">
+            <div class="label-row">
+              <label for="elevation">Elevation</label>
+              <span id="elevation-value">45°</span>
+            </div>
+            <input type="range" id="elevation" min="5" max="85" value="45" />
+          </div>
+
+          <button id="compose" class="primary">Generate composite</button>
+          <p id="status" class="status">Waiting for inputs.</p>
+        </section>
+
+        <section class="panel preview">
+          <h2>Preview</h2>
+          <div class="preview-grid">
+            <div class="preview-card">
+              <h3>Foreground</h3>
+              <img id="fg-preview" alt="Foreground preview" />
+            </div>
+            <div class="preview-card">
+              <h3>Background</h3>
+              <img id="bg-preview" alt="Background preview" />
+            </div>
+            <div class="preview-card">
+              <h3>Mask</h3>
+              <img id="mask-preview" alt="Mask preview" />
+            </div>
+          </div>
+        </section>
+
+        <section class="panel output">
+          <h2>Output</h2>
+          <div class="output-grid">
+            <div class="output-card">
+              <h3>Composite</h3>
+              <img id="composite-preview" alt="Composite output" />
+            </div>
+            <div class="output-card">
+              <h3>Shadow only</h3>
+              <img id="shadow-preview" alt="Shadow output" />
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
