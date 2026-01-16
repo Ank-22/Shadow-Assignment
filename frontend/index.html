@@ -70,7 +70,10 @@
             <input type="checkbox" id="live" checked />
             <label for="live">Live preview</label>
           </div>
-          <p id="status" class="status">Waiting for inputs.</p>
+          <div class="status-row">
+            <div id="loader" class="loader" aria-hidden="true"></div>
+            <p id="status" class="status">Waiting for inputs.</p>
+          </div>
         </section>
 
         <section class="panel preview">

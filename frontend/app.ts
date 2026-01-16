@@ -49,6 +49,10 @@ const setStatus = (message: string, isError = false) => {
   status.style.color = isError ? "#b01a1a" : "";
 };
 
+const setLoading = (isLoading: boolean) => {
+  document.body.classList.toggle("loading", isLoading);
+};
+
 const fileRequired = (input: HTMLInputElement, label: string) => {
   if (!input.files || input.files.length === 0) {
     setStatus(`Please upload a ${label}.`, true);
@@ -65,6 +69,7 @@ const compose = async () => {
   setStatus("Rendering shadow, please wait...");
   composeButton.disabled = true;
   renderInFlight = true;
+  setLoading(true);
 
   const form = new FormData();
   form.append("fg", fgInput.files![0]);
@@ -103,6 +108,7 @@ const compose = async () => {
   } finally {
     composeButton.disabled = false;
     renderInFlight = false;
+    setLoading(false);
   }
 };
 
