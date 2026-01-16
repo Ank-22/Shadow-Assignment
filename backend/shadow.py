@@ -122,12 +122,16 @@ def build_shadow_alpha(
     dx = math.cos(angle_rad)
     dy = math.sin(angle_rad)
 
-    max_extent = compute_shadow_extent(mask.size, y0, dx, dy)
+    # Reverse the fade direction so near-contact stays darker and far fades out.
+    fade_dx = -dx
+    fade_dy = -dy
+
+    max_extent = compute_shadow_extent(mask.size, y0, fade_dx, fade_dy)
     contact_distance = max_extent * max(contact_fade, 0.01)
     soft_distance = max_extent * max(soft_fade, 0.01)
 
-    contact_fade_mask = build_fade_mask(mask.size, y0, dx, dy, contact_distance)
-    soft_fade_mask = build_fade_mask(mask.size, y0, dx, dy, soft_distance)
+    contact_fade_mask = build_fade_mask(mask.size, y0, fade_dx, fade_dy, contact_distance)
+    soft_fade_mask = build_fade_mask(mask.size, y0, fade_dx, fade_dy, soft_distance)
 
     contact_shadow = shadow_mask.filter(ImageFilter.GaussianBlur(2))
     contact_shadow = ImageChops.multiply(contact_shadow, contact_fade_mask)
