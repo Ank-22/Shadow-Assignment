@@ -7,12 +7,20 @@ const angleValue = document.getElementById("angle-value");
 const elevationValue = document.getElementById("elevation-value");
 const status = document.getElementById("status");
 const composeButton = document.getElementById("compose");
+const liveToggle = document.getElementById("live");
+const downloadComposite = document.getElementById("download-composite");
+const downloadShadow = document.getElementById("download-shadow");
 
 const fgPreview = document.getElementById("fg-preview");
 const bgPreview = document.getElementById("bg-preview");
 const maskPreview = document.getElementById("mask-preview");
 const compositePreview = document.getElementById("composite-preview");
 const shadowPreview = document.getElementById("shadow-preview");
+
+let latestComposite = null;
+let latestShadow = null;
+let renderTimeout = null;
+let renderInFlight = false;
 
 const updateSliderLabels = () => {
   angleValue.textContent = `${angleInput.value}°`;
@@ -50,6 +58,7 @@ const compose = async () => {
 
   setStatus("Rendering shadow, please wait...");
   composeButton.disabled = true;
+  renderInFlight = true;
 
   const form = new FormData();
   form.append("fg", fgInput.files[0]);
@@ -71,6 +80,8 @@ const compose = async () => {
     }
 
     const data = await response.json();
+    latestComposite = data.composite;
+    latestShadow = data.shadow_only;
     compositePreview.src = `data:image/png;base64,${data.composite}`;
     shadowPreview.src = `data:image/png;base64,${data.shadow_only}`;
     setStatus("Done. Adjust the sliders and run again.");
@@ -79,7 +90,37 @@ const compose = async () => {
     setStatus(message, true);
   } finally {
     composeButton.disabled = false;
+    renderInFlight = false;
   }
+};
+
+const scheduleRender = () => {
+  if (!liveToggle.checked) {
+    return;
+  }
+  if (renderTimeout) {
+    window.clearTimeout(renderTimeout);
+  }
+  renderTimeout = window.setTimeout(() => {
+    if (!renderInFlight) {
+      compose();
+    }
+  }, 250);
+};
+
+const downloadFromBase64 = (data, filename) => {
+  const link = document.createElement("a");
+  link.href = `data:image/png;base64,${data}`;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+};
+
+const buildFilename = (base) => {
+  const angle = angleInput.value;
+  const elevation = elevationInput.value;
+  return `${base}_angle-${angle}_elev-${elevation}.png`;
 };
 
 updateSliderLabels();
@@ -90,3 +131,24 @@ maskInput.addEventListener("change", () => updatePreview(maskInput, maskPreview)
 angleInput.addEventListener("input", updateSliderLabels);
 elevationInput.addEventListener("input", updateSliderLabels);
 composeButton.addEventListener("click", compose);
+fgInput.addEventListener("change", scheduleRender);
+bgInput.addEventListener("change", scheduleRender);
+maskInput.addEventListener("change", scheduleRender);
+angleInput.addEventListener("input", scheduleRender);
+elevationInput.addEventListener("input", scheduleRender);
+
+downloadComposite.addEventListener("click", () => {
+  if (!latestComposite) {
+    setStatus("No composite available yet.", true);
+    return;
+  }
+  downloadFromBase64(latestComposite, buildFilename("composite"));
+});
+
+downloadShadow.addEventListener("click", () => {
+  if (!latestShadow) {
+    setStatus("No shadow output available yet.", true);
+    return;
+  }
+  downloadFromBase64(latestShadow, buildFilename("shadow_only"));
+});

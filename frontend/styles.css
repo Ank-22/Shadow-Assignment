@@ -133,6 +133,30 @@ input[type="range"] {
   color: var(--olive);
 }
 
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+  font-size: 0.95rem;
+}
+
+.ghost {
+  margin-top: 12px;
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--stone);
+  background: transparent;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ghost:hover {
+  border-color: var(--ember);
+  color: var(--ember);
+}
+
 .preview-grid,
 .output-grid {
   display: grid;

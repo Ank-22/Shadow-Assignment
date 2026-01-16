@@ -50,6 +50,10 @@
           </div>
 
           <button id="compose" class="primary">Generate composite</button>
+          <div class="toggle">
+            <input type="checkbox" id="live" checked />
+            <label for="live">Live preview</label>
+          </div>
           <p id="status" class="status">Waiting for inputs.</p>
         </section>
 
@@ -77,10 +81,12 @@
             <div class="output-card">
               <h3>Composite</h3>
               <img id="composite-preview" alt="Composite output" />
+              <button id="download-composite" class="ghost">Save composite</button>
             </div>
             <div class="output-card">
               <h3>Shadow only</h3>
               <img id="shadow-preview" alt="Shadow output" />
+              <button id="download-shadow" class="ghost">Save shadow</button>
             </div>
           </div>
         </section>
